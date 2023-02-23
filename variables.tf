@@ -32,3 +32,7 @@ variable "administrator_login_password" {
   type        = string
   description = "name of the administrator_login_password"
 }
+variable "storage_name" {
+  type        = string
+  description = "name of the storage account"
+}
