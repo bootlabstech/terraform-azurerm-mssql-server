@@ -14,3 +14,10 @@ resource "azurerm_mssql_server" "mssql" {
   }
 
 }
+
+resource "azurerm_mssql_firewall_rule" "fw" {
+  name             = var.fw_name
+  server_id        = azurerm_mssql_server.example.id
+  start_ip_address = "10.0.17.62"
+  end_ip_address   = "10.0.17.62"
+}

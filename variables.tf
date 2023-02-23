@@ -13,6 +13,11 @@ variable "mssql_name" {
   description = "name of the mssql server"
 }
 
+variable "fw_name" {
+  type        = string
+  description = "name of the firewall server"
+}
+
 variable "database_name" {
   type        = string
   description = "name of the database_name "
