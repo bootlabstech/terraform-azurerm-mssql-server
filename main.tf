@@ -1,59 +1,70 @@
-resource "azurerm_mssql_server" "mssql" {
-  name                         = var.mssql_name
+# Creates a  MsSQL Server
+resource "azurerm_mssql_server" "example" {
+  name                         = var.server_name
   resource_group_name          = var.resource_group_name
   location                     = var.location
-  version                      = "12.0"
+  version                      = var.server_version
   administrator_login          = var.administrator_login
-  administrator_login_password = var.administrator_login_password
-  minimum_tls_version          = "1.2"
-
-  azuread_administrator {
-    azuread_authentication_only = true
-    login_username = "AzureAD Admin"
-    object_id      = "00000000-0000-0000-0000-000000000000"
-  }
-
-}
-
-resource "azurerm_mssql_firewall_rule" "fw" {
-  name             = var.fw_name
-  server_id        = azurerm_mssql_server.mssql.id
-  start_ip_address = "10.0.17.62"
-  end_ip_address   = "10.0.17.62"
-}
-
-resource "azurerm_storage_account" "storage" {
-  name                              = var.storage_name
-  resource_group_name               = var.resource_group_name
-  location                          = var.location
-  account_kind                      = "StorageV2"
-  account_tier                      = "Premium"
-  account_replication_type          = var.file_storage_account_replication_type
-  enable_https_traffic_only         = true
-  allow_nested_items_to_be_public   = true
-  infrastructure_encryption_enabled = true
-  shared_access_key_enabled         = true
-
-  network_rules {
-    default_action = "Deny"
-    ip_rules       = ["100.0.0.1"]
-    bypass         = ["AzureServices"]
-  }
-
-  blob_properties {
-    delete_retention_policy {
-      days = 7
-    }
-
-    container_delete_retention_policy {
-      days = 7
-    }
+  administrator_login_password = random_password.password.result
+  connection_policy            = var.connection_policy
+  public_network_access_enabled = var.public_network_access_enabled
+  lifecycle {
+    ignore_changes = [
+      tags,
+    ]
   }
 }
+# # Creates a mssql database
+# resource "azurerm_mssql_database" "test" {
+#   name                           = var.name
+#   server_id                      = azurerm_mssql_server.example.id
+#   create_mode                    = var.create_mode
+#   geo_backup_enabled             = var.geo_backup_enabled
+#   maintenance_configuration_name = var.maintenance_configuration_name
+#   max_size_gb                    = var.max_size_gb
+#   sku_name                       = var.sku_name
+#   storage_account_type           = var.storage_account_type
+#   lifecycle {
+#     ignore_changes = [
+#       tags,
+#     ]
+#   }
+# }
 
-resource "azurerm_mssql_server_extended_auditing_policy" "audit" {
-  enabled                                 = true
-  server_id                               = azurerm_mssql_server.mssql.id
-  log_monitoring_enabled                  = true
-  retention_in_days                       = 90
+# Network setting allows All Azure Services
+resource "azurerm_mssql_firewall_rule" "example" {
+  name             = "${var.name}-fwrule"
+  server_id        = azurerm_mssql_server.example.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
 }
+
+
+# get key vault details to store DB password as secret
+data "azurerm_key_vault" "key_vault" {
+  name                = var.keyvault_name
+  resource_group_name = var.resource_group_name
+}
+
+# Creates random password
+resource "random_password" "password" {
+  length      = 12
+  lower       = true
+  min_lower   = 6
+  min_numeric = 2
+  min_special = 2
+  min_upper   = 2
+  numeric     = true
+  special     = true
+  upper       = true
+
+}
+
+# Stores DB login password as keyvault secret
+resource "azurerm_key_vault_secret" "mssql_password" {
+  name         = "${var.name}-pwd"
+  value        = random_password.password.result
+  key_vault_id = data.azurerm_key_vault.key_vault.id
+
+  depends_on = [azurerm_mysql_flexible_server.example]
+}  
