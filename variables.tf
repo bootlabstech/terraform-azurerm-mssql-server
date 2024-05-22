@@ -1,5 +1,5 @@
 # server
-variable "server_name" {
+variable "name" {
   type        = string
   description = "The name of the Microsoft SQL Server. This needs to be globally unique within Azure. "
 
@@ -37,51 +37,8 @@ variable "public_network_access_enabled" {
     default = true
 
 }
+
 variable "keyvault_name" {
-  type        = string
-  description = "The name of the keyvault used to store sql pwd"
-
+  type = string
   
-}
-
-# MSSQL database
-variable "name" {
-    type = string
-    description = "The name of the MS SQL Database. Changing this forces a new resource to be created."
-
-}
-variable "create_mode" {
-  type        = string
-  description = "The create mode of the database. Possible values are Copy, Default, OnlineSecondary, PointInTimeRestore, Recovery, Restore, RestoreExternalBackup, RestoreExternalBackupSecondary, RestoreLongTermRetentionBackup and Secondary. Mutually exclusive with import."
-  default     = "Default"
-
-
-}
-variable "geo_backup_enabled" {
-  type        = bool
-  description = "A boolean that specifies if the Geo Backup Policy is enabled. Defaults to true."
-  default     = true
-
-}
-variable "maintenance_configuration_name" {
-  type        = string
-  description = "The name of the Public Maintenance Configuration window to apply to the database. Valid values include SQL_Default"
-  default     = "SQL_Default"
-
-}
-variable "max_size_gb" {
-  type        = number
-  description = "The max size of the database in gigabytes."
-
-}
-variable "sku_name" {
-  type        = string
-  description = "Specifies the name of the SKU used by the database. For example, GP_S_Gen5_2,HS_Gen4_1,BC_Gen5_2, ElasticPool, Basic,S0, P2 ,DW100c, DS100."
-
-}
-variable "storage_account_type" {
-  type        = string
-  description = "Specifies the storage account type used to store backups for this database. Possible values are Geo, Local and Zone. The default value is Geo."
-  default     = "Geo"
-
 }
