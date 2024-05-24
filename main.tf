@@ -55,7 +55,7 @@ resource "azurerm_key_vault_secret" "mssql_password" {
 }  
 # Creates  a private endpoint with private dns
 resource "azurerm_private_endpoint" "endpoint" {
-  name                = var.name
+  name                = "${var.name}-pe"
   location            = var.location
   resource_group_name = var.resource_group_name
   subnet_id           = var.private_endpoint_subnet_id
