@@ -16,13 +16,13 @@ resource "azurerm_mssql_server" "example" {
 }
 
 
-# Network setting allows All Azure Services
-resource "azurerm_mssql_firewall_rule" "example" {
-  name             = "${var.name}-fwrule"
-  server_id        = azurerm_mssql_server.example.id
-  start_ip_address = "0.0.0.0"
-  end_ip_address   = "0.0.0.0"
-}
+# # Network setting allows All Azure Services
+# resource "azurerm_mssql_firewall_rule" "example" {
+#   name             = "${var.name}-fwrule"
+#   server_id        = azurerm_mssql_server.example.id
+#   start_ip_address = "0.0.0.0"
+#   end_ip_address   = "0.0.0.0"
+# }
 
 
 # get key vault details to store DB password as secret
@@ -53,3 +53,30 @@ resource "azurerm_key_vault_secret" "mssql_password" {
 
   depends_on = [azurerm_mssql_server.example]
 }  
+# Creates  a private endpoint with private dns
+resource "azurerm_private_endpoint" "endpoint" {
+  name                = var.name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  subnet_id           = var.private_endpoint_subnet_id
+
+  private_service_connection {
+    name                           = "${var.name}-connection"
+    private_connection_resource_id = azurerm_mssql_server.example.id
+    is_manual_connection           = var.is_manual_connection
+    subresource_names              = var.subresource_names
+
+  }
+
+  private_dns_zone_group {
+    name                 = "${var.name}-dnszone"
+    private_dns_zone_ids = var.private_dns_zone_ids
+  }
+  lifecycle {
+    ignore_changes = [
+      tags,
+    ]
+  }
+
+}
+
